@@ -18,7 +18,7 @@ h2{font-size:16px;margin:0 0 12px}.muted{color:#9da6bc;font-size:12px}
 button{font:inherit}.smallbtn{padding:9px 11px;border-radius:10px;background:#151a27;color:#cbd4e8;border:1px solid #303a52;font-size:12px}
 .hidden{display:none}.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
 
-.miniIcon{width:26px;height:26px;object-fit:contain;vertical-align:middle}.finalIcon{width:28px;height:28px;object-fit:contain;vertical-align:middle;margin-right:6px}.truthIcon{width:48px;height:48px;object-fit:contain;display:block}.truthRow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}.truthBtn{border:1px solid #35405c;background:#1b2232;color:#fff;border-radius:15px;padding:10px;min-height:82px;display:flex;align-items:center;justify-content:center;gap:9px;font-weight:900;font-size:17px}.truthBtn.on{background:#314c7c;border-color:#72a6ff;box-shadow:0 0 0 2px #72a6ff33 inset}.gcTableWrap{margin-top:12px;background:#101521;border:1px solid #2a3348;border-radius:14px;padding:10px}.tableTitle{font-weight:900;font-size:13px;margin-bottom:7px}.gcTable{display:grid;grid-template-columns:1.1fr 1fr 1fr;font-size:11px;border-top:1px solid #313b52;border-left:1px solid #313b52}.gcTable>*{padding:7px 5px;border-right:1px solid #313b52;border-bottom:1px solid #313b52;min-width:0}.gcTable .th{font-weight:900;background:#1a2130}.gcTable .sel{background:#26395d}.tableNote{font-size:10px;color:#9da6bc;margin-top:7px;line-height:1.4}.debuffGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:8px}.debuff{padding:10px 7px;min-height:82px}.debuff .muted{display:block;font-size:10px;margin-top:4px}.disabled{opacity:.38;cursor:not-allowed}.hint{font-size:11px;color:#9da6bc;margin-top:10px;line-height:1.45}.selectedDebuff{display:flex;align-items:center;gap:10px;margin-top:9px}.resultIcon{width:36px;height:36px;object-fit:contain}.actionPair{display:grid;gap:5px;margin-top:8px;text-align:center;font-size:16px;font-weight:800}.subAction{text-align:center;font-size:16px;font-weight:800;margin-top:6px;color:#d9e3f7}.primary{background:#314c7c;border-color:#72a6ff}
+.miniIcon{width:26px;height:26px;object-fit:contain;vertical-align:middle}.finalIcon{width:28px;height:28px;object-fit:contain;vertical-align:middle;margin-right:6px}.truthIcon{width:48px;height:48px;object-fit:contain;display:block}.truthRow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}.truthBtn{border:1px solid #35405c;background:#1b2232;color:#fff;border-radius:15px;padding:10px;min-height:82px;display:flex;align-items:center;justify-content:center;gap:9px;font-weight:900;font-size:17px}.truthBtn.on{background:#314c7c;border-color:#72a6ff;box-shadow:0 0 0 2px #72a6ff33 inset}.gcTableWrap{margin-top:12px;background:#101521;border:1px solid #2a3348;border-radius:14px;padding:10px}.tableTitle{font-weight:900;font-size:13px;margin-bottom:7px}.gcTable{display:grid;grid-template-columns:1.1fr 1fr 1fr;font-size:11px;border-top:1px solid #313b52;border-left:1px solid #313b52}.gcTable>*{padding:7px 5px;border-right:1px solid #313b52;border-bottom:1px solid #313b52;min-width:0}.gcTable .th{font-weight:900;background:#1a2130}.gcTable .sel{background:#26395d}.gcAssign .td{line-height:1.35}.gcAssign .muted{font-size:9px}.tableNote{font-size:10px;color:#9da6bc;margin-top:7px;line-height:1.4}.debuffGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:8px}.debuff{padding:10px 7px;min-height:82px}.debuff .muted{display:block;font-size:10px;margin-top:4px}.disabled{opacity:.38;cursor:not-allowed}.hint{font-size:11px;color:#9da6bc;margin-top:10px;line-height:1.45}.selectedDebuff{display:flex;align-items:center;gap:10px;margin-top:9px}.resultIcon{width:36px;height:36px;object-fit:contain}.actionPair{display:grid;gap:5px;margin-top:8px;text-align:center;font-size:16px;font-weight:800}.subAction{text-align:center;font-size:16px;font-weight:800;margin-top:6px;color:#d9e3f7}.primary{background:#314c7c;border-color:#72a6ff}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -64,6 +64,7 @@ function pick(gc,k,v){
 function autoProgress(gc){
   const g=S[gc];
   if(gc==='gc1' && g.ex && g.debuff){S.step=2;S.gc2={};}
+ if(gc==='gc2' && g.ex && g.debuff){S.step=3;}
 }
 function truth(gc){return S[gc].ex==='true'}
 function action(debuff,gc){
@@ -99,21 +100,52 @@ function allowedGC2(){
  if(d.kind==='thunder')return ['none'];
  return [];
 }
-function gcTable(){
- const rows=[
-  ['vision','waterL / thunderL','waterE / thunderE'],
-  ['none','waterL / thunderL','waterE / thunderE'],
-  ['waterE','vision','—'],
-  ['thunderE','none','—'],
-  ['waterL','vision','—'],
-  ['thunderL','none','—']
- ];
- const selected=S.gc1.debuff;
- return `<div class="gcTableWrap"><div class="tableTitle">GC判定</div><div class="gcTable"><div class="th">GC1</div><div class="th">パターン①</div><div class="th">パターン②</div>${rows.map(r=>`<div class="td ${selected===r[0]?'sel':''}">${DEBUFFS[r[0]].label}</div><div class="td ${selected===r[0]?'sel':''}">${formatPair(r[1])}</div><div class="td ${selected===r[0]?'sel':''}">${formatPair(r[2])}</div>`).join('')}</div><div class="tableNote">GC1で付いたものから、GC2で付く候補を確認できます。</div></div>`;
+function handlingText(key,gc){
+ const d=DEBUFFS[key]; if(!d)return '—';
+ const t=truth(gc);
+ if(d.kind==='vision') return `視線：${action('curse',gc)} / 加速弾：${action('acc',gc)}`;
+ if(d.kind==='none') return `加速弾：${action('acc',gc)}`;
+ return action(d.kind,gc);
 }
-function formatPair(v){
- if(v==='—')return '—';
- return v.split(' / ').map(x=>DEBUFFS[x]?DEBUFFS[x].label.replace(/^早|^遅/,'')+`（${DEBUFFS[x].timeText.replace('（早）','').replace('（遅）','')}）`:x).join(' / ');
+function gcTable(){
+ const selected=S.gc1.debuff;
+ if(!selected){
+   return `<div class="gcTableWrap"><div class="tableTitle">GC判定</div><div class="gcTable gcAssign"><div class="th">GC1</div><div class="th">GC2 ①</div><div class="th">GC2 ②</div><div class="td">GC1を選択</div><div class="td">—</div><div class="td">—</div></div><div class="tableNote">GC1を選ぶと、あなたが担当する処理を表示します。</div></div>`;
+ }
+ const d=DEBUFFS[selected];
+ const candidates=allowedGC2();
+ const c1=candidates[0], c2=candidates[1];
+ const gc1Text=handlingText(selected,'gc1');
+ let a='—',b='—';
+ if(d.kind==='vision'||d.kind==='none'){
+   a=`${DEBUFFS[c1].label}<br><span class="muted">${DEBUFFS[c1].timeText}</span>`;
+   b=`${DEBUFFS[c2].label}<br><span class="muted">${DEBUFFS[c2].timeText}</span>`;
+ }else{
+   const k=candidates[0];
+   a=`${DEBUFFS[k].label}<br><span class="muted">${DEBUFFS[k].timeText}</span>`;
+ }
+ return `<div class="gcTableWrap"><div class="tableTitle">GC判定</div><div class="gcTable gcAssign"><div class="th">GC1</div><div class="th">GC2 ①</div><div class="th">GC2 ②</div><div class="td sel"><strong>${d.label}</strong><br><span class="muted">${gc1Text}</span></div><div class="td">${a}</div><div class="td">${b}</div></div><div class="tableNote">GC1の担当処理と、GC2で担当する候補を表示しています。</div></div>`;
+}
+function gc2Table(){
+ const d=S.gc1.debuff;
+ if(!d){
+   return `<div class="gcTableWrap"><div class="tableTitle">GC判定</div><div class="gcTable gcAssign"><div class="th">GC1</div><div class="th">GC2 ①</div><div class="th">GC2 ②</div><div class="td">GC1を選択</div><div class="td">—</div><div class="td">—</div></div></div>`;
+ }
+ const k=selectedInfo('gc2');
+ const candidates=allowedGC2();
+ const c1=candidates[0], c2=candidates[1];
+ const gc1Text=handlingText(d,'gc1');
+ const gc2Text=k?handlingText(S.gc2.debuff,'gc2'):'GC2を選択';
+ let a='—',b='—';
+ if(k){
+   a=`${k.label}<br><span class="muted">${gc2Text}</span>`;
+ } else if(DEBUFFS[d].kind==='vision'||DEBUFFS[d].kind==='none'){
+   a=`${DEBUFFS[c1].label}<br><span class="muted">候補①</span>`;
+   b=`${DEBUFFS[c2].label}<br><span class="muted">候補②</span>`;
+ } else {
+   a=`${DEBUFFS[c1].label}<br><span class="muted">候補</span>`;
+ }
+ return `<div class="gcTableWrap"><div class="tableTitle">GC判定</div><div class="gcTable gcAssign"><div class="th">GC1</div><div class="th">GC2 ①</div><div class="th">GC2 ②</div><div class="td sel"><strong>${DEBUFFS[d].label}</strong><br><span class="muted">${gc1Text}</span></div><div class="td">${a}</div><div class="td">${b}</div></div><div class="tableNote">GC2を選ぶと、ここに実際の担当処理が入ります。</div></div>`;
 }
 function debuffButton(gc,key){
  const d=DEBUFFS[key];
@@ -144,10 +176,10 @@ function gcUI(n){
  ${table}
  <div class="muted" style="margin-top:14px">② 自分のデバフ</div>
  <div class="debuffGrid">${choices.map(k=>debuffButton(`gc${n}`,k)).join('')}</div>
- <div class="hint">${n===1?'GC1を2項目選び終えると、自動でGC2へ進みます。':'GC2のデバフまで選んだら判定結果を確認できます。'}</div>
+ <div class="hint">${n===1?'GC1を2項目選び終えると、自動でGC2へ進みます。':'GC2を選び終えると、自動で最終結果へ進みます。'}</div>
  </div>
  ${complete?gcPreview(n):''}
- ${n===2&&complete?`<button class="btn primary" style="width:100%" onclick="S.step=3;render()">判定結果を見る →</button>`:''}
+
  ${n===2?'<button class="smallbtn" style="width:100%;margin-top:8px" onclick="S.step=1;render()">← GC1を修正</button>':''}`;
 }
 function gc2Table(){
