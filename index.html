@@ -225,14 +225,15 @@ function finalUI(){
    }
  }
  // 視線は常に両方表示。
- // 早視線：早デバフがある場合は、その一番下。早デバフがなければ先頭。
- // 遅視線：常に最終結果の一番下。
+ // 自分に視線デバフが付いたGCだけ、視線アイコンを表示する。
+ // 付いていない側は「視線」の文字だけにする。
+ // 早視線は早デバフ群の中、遅視線は常に最終結果の一番下。
  items.push({
    releaseOrder:2,
    gcOrder:99,
    timing:'51s（早）',
    release:'1回目 視線',
-   name:`${iconImg('curse','finalIcon')}視線`,
+   name:`${S.gc1.debuff==='vision'?iconImg('curse','finalIcon'):''}視線`,
    act:action('curse','gc1'),
    kind:'vision'
  });
@@ -241,7 +242,7 @@ function finalUI(){
    gcOrder:999,
    timing:'1m（遅）',
    release:'2回目 視線',
-   name:`${iconImg('curse','finalIcon')}視線`,
+   name:`${S.gc2.debuff==='vision'?iconImg('curse','finalIcon'):''}視線`,
    act:action('curse','gc2'),
    kind:'vision'
  });
