@@ -63,8 +63,9 @@ function pick(gc,k,v){
 }
 function autoProgress(gc){
   const g=S[gc];
-  if(gc==='gc1' && g.ex && g.debuff){S.step=2;S.gc2={};}
- if(gc==='gc2' && g.ex && g.debuff){S.step=3;}
+  const gc1Ready=!!(g.ex&&g.debuff&&((g.debuff==='vision'||g.debuff==='none')?g.partnerTiming:true));
+  if(gc==='gc1' && gc1Ready){S.step=2;S.gc2={};}
+  if(gc==='gc2' && g.ex && g.debuff){S.step=3;}
 }
 function truth(gc){return S[gc].ex==='true'}
 function action(debuff,gc){
@@ -76,8 +77,9 @@ function action(debuff,gc){
  return '';
 }
 function marker(gc){
- const g=S[gc]; if(!g.time || !g.ex) return '';
- const spread=(g.debuff==='thunder'&&g.ex==='true')||(g.debuff==='water'&&g.ex==='false');
+ const g=S[gc]; if(!g.time || !g.ex || !g.debuff) return '';
+ const kind=DEBUFFS[g.debuff]?.kind || g.debuff;
+ const spread=(kind==='thunder'&&g.ex==='true')||(kind==='water'&&g.ex==='false');
  if(!spread)return '';
  const fast=g.time==='early'?'早':'遅';
  if(S.role==='dps')return fast==='早'?'アタック1':'アタック2';
@@ -91,13 +93,19 @@ const DEBUFFS={
  waterL:{label:'遅水圧縮',icon:'water',time:'late',timeText:'1m（遅）',acc:'なし',kind:'water'},
  thunderL:{label:'遅ライトニング',icon:'fork',time:'late',timeText:'1m（遅）',acc:'なし',kind:'thunder'}
 };
+function timeText(key,gc){ const d=DEBUFFS[key]; if(!d)return ''; if(gc==='gc2') return d.time==='early'?'36s（早）':'1m（遅）'; return d.timeText; }
 function selectedInfo(gc){const d=DEBUFFS[S[gc].debuff]; return d?d:null}
 function allowedGC2(){
  const d=selectedInfo('gc1');
  if(!d)return [];
- if(d.kind==='vision'||d.kind==='none')return ['waterE','thunderE','waterL','thunderL'];
- if(d.kind==='water')return ['vision'];
- if(d.kind==='thunder')return ['none'];
+ // 視線/無職は、パーティメンバー側の早遅を1回選んでからGC2を2択まで絞る。
+ if(d.kind==='vision'||d.kind==='none'){
+   if(!S.gc1.partnerTiming)return [];
+   return S.gc1.partnerTiming==='early'?['waterL','thunderL']:['waterE','thunderE'];
+ }
+ // 水/雷はGC1自身の早遅からGC2が一意に決まる。
+ if(d.kind==='water')return d.time==='early'?['vision']:['none'];
+ if(d.kind==='thunder')return d.time==='early'?['none']:['vision'];
  return [];
 }
 function handlingText(key,gc){
@@ -118,11 +126,11 @@ function gcTable(){
  const gc1Text=handlingText(selected,'gc1');
  let a='—',b='—';
  if(d.kind==='vision'||d.kind==='none'){
-   a=`${DEBUFFS[c1].label}<br><span class="muted">${DEBUFFS[c1].timeText}</span>`;
-   b=`${DEBUFFS[c2].label}<br><span class="muted">${DEBUFFS[c2].timeText}</span>`;
+   a=`${DEBUFFS[c1].label}<br><span class="muted">${timeText(c1,'gc2')}</span>`;
+   b=`${DEBUFFS[c2].label}<br><span class="muted">${timeText(c2,'gc2')}</span>`;
  }else{
    const k=candidates[0];
-   a=`${DEBUFFS[k].label}<br><span class="muted">${DEBUFFS[k].timeText}</span>`;
+   a=`${DEBUFFS[k].label}<br><span class="muted">${timeText(k,'gc2')}</span>`;
  }
  return `<div class="gcTableWrap"><div class="tableTitle">GC判定</div><div class="gcTable gcAssign"><div class="th">GC1</div><div class="th">GC2 ①</div><div class="th">GC2 ②</div><div class="td sel"><strong>${d.label}</strong><br><span class="muted">${gc1Text}</span></div><div class="td">${a}</div><div class="td">${b}</div></div><div class="tableNote">GC1の担当処理と、GC2で担当する候補を表示しています。</div></div>`;
 }
@@ -150,7 +158,7 @@ function gc2Table(){
 function debuffButton(gc,key){
  const d=DEBUFFS[key];
  const allowed=gc==='gc2' && S.gc1.debuff ? allowedGC2().includes(key) : true;
- return `<button class="btn debuff ${S[gc].debuff===key?'on':''} ${!allowed?'disabled':''}" ${allowed?'':'disabled'} onclick="pick('${gc}','debuff','${key}')"><span class="ico">${iconImg(d.icon)}</span><strong>${d.label}</strong><span class="muted">${d.timeText}　加速弾：${d.acc}</span></button>`;
+ return `<button class="btn debuff ${S[gc].debuff===key?'on':''} ${!allowed?'disabled':''}" ${allowed?'':'disabled'} onclick="pick('${gc}','debuff','${key}')"><span class="ico">${iconImg(d.icon)}</span><strong>${d.label}</strong><span class="muted">${timeText(key,gc)}　加速弾：${d.acc}</span></button>`;
 }
 function render(){
  if(!S.role){$('role').classList.remove('hidden');$('app').classList.add('hidden');return}
@@ -163,58 +171,71 @@ function truthButtons(n){
  const g=S['gc'+n];
  return `<div class="truthRow"><button class="truthBtn ${g.ex==='true'?'on':''}" onclick="pick('gc${n}','ex','true')">${truthImg('true')}<span>本当</span></button><button class="truthBtn ${g.ex==='false'?'on':''}" onclick="pick('gc${n}','ex','false')">${truthImg('false')}<span>嘘</span></button></div>`;
 }
+function partnerTimingUI(n){
+ if(n!==1)return '';
+ const d=selectedInfo('gc1');
+ if(!d || (d.kind!=='vision'&&d.kind!=='none'))return '';
+ const p=S.gc1.partnerTiming||'';
+ return `<div class="sectionTitle" style="margin-top:14px">③ パーティメンバーのデバフ</div>
+ <div class="row" style="margin-top:8px">
+   <button class="btn ${p==='early'?'on':''}" onclick="pick('gc1','partnerTiming','early')">早デバフ<br><span class="muted">GC2：遅水 / 遅雷</span></button>
+   <button class="btn ${p==='late'?'on':''}" onclick="pick('gc1','partnerTiming','late')">遅デバフ<br><span class="muted">GC2：早水 / 早雷</span></button>
+ </div>
+ <div class="hint">自分が視線/無職の場合、パーティメンバーの早遅を選ぶとGC2の候補を2択まで絞れます。</div>`;
+}
 function gcUI(n){
  const g=S['gc'+n];
- const complete=!!(g.ex&&g.debuff);
+ const complete=!!(g.ex&&g.debuff&&((n===1&&(g.debuff==='vision'||g.debuff==='none'))?g.partnerTiming:true));
  const title=n===1?'GC1':'GC2';
- const table=n===1?gcTable():gc2Table();
  const choices=n===1?['vision','none','waterE','thunderE','waterL','thunderL']:allowedGC2();
  $('step').innerHTML=`
  <div class="card"><div class="top"><h2>${title}</h2><span class="muted">STEP ${n}/2</span></div>
  <div class="muted" style="margin-bottom:10px">① グランドクロスの玉</div>
  ${truthButtons(n)}
- ${table}
  <div class="muted" style="margin-top:14px">② 自分のデバフ</div>
  <div class="debuffGrid">${choices.map(k=>debuffButton(`gc${n}`,k)).join('')}</div>
- <div class="hint">${n===1?'GC1を2項目選び終えると、自動でGC2へ進みます。':'GC2を選び終えると、自動で最終結果へ進みます。'}</div>
+ ${partnerTimingUI(n)}
+ <div class="hint">${n===1?'必要な項目を選び終えると、自動でGC2へ進みます。':'GC2を選び終えると、自動で最終結果へ進みます。'}</div>
  </div>
  ${complete?gcPreview(n):''}
-
  ${n===2?'<button class="smallbtn" style="width:100%;margin-top:8px" onclick="S.step=1;render()">← GC1を修正</button>':''}`;
-}
-function gc2Table(){
- const d=S.gc1.debuff;
- const rows=d?allowedGC2():[];
- let body='';
- if(d && (DEBUFFS[d].kind==='vision'||DEBUFFS[d].kind==='none')){
-   body=`<div class="td sel">${DEBUFFS[d].label}</div><div class="td">早水圧縮 / 早ライトニング</div><div class="td">遅水圧縮 / 遅ライトニング</div>`;
- }else if(d){
-   const k=allowedGC2()[0]; body=`<div class="td sel">${DEBUFFS[d].label}</div><div class="td">${DEBUFFS[k].label}</div><div class="td">—</div>`;
- }else{body=`<div class="td">GC1を選択</div><div class="td">—</div><div class="td">—</div>`}
- return `<div class="gcTableWrap"><div class="tableTitle">GC判定</div><div class="gcTable"><div class="th">GC1</div><div class="th">パターン①</div><div class="th">パターン②</div>${body}</div><div class="tableNote">GC1で選んだデバフから、GC2の候補を絞っています。</div></div>`;
 }
 function gcPreview(n){
  const d=selectedInfo('gc'+n); if(!d)return '';
- let html=`<div class="card"><div class="muted">${n===1?'GC1':'GC2'}の判定</div><div class="selectedDebuff">${iconImg(d.icon,'resultIcon')}<div><strong>${d.label}</strong><div class="muted">${d.timeText}　加速弾：${d.acc}</div></div></div>`;
+ let html=`<div class="card"><div class="muted">${n===1?'GC1':'GC2'}の判定</div><div class="selectedDebuff">${iconImg(d.icon,'resultIcon')}<div><strong>${d.label}</strong><div class="muted">${timeText(S['gc'+n].debuff,'gc'+n)}　加速弾：${d.acc}</div></div></div>`;
  if(d.kind==='vision') html+=`<div class="actionPair"><span>視線：${action('curse',`gc${n}`)}</span><span>加速弾：${action('acc',`gc${n}`)}</span></div>`;
  else if(d.kind==='none') html+=`<div class="actionPair"><span>加速弾：${action('acc',`gc${n}`)}</span><span>水雷：なし</span></div>`;
  else html+=`<div class="action">${action(d.kind,`gc${n}`)}</div>${marker(`gc${n}`)?`<div class="marker">🎯 ${marker(`gc${n}`)}</div>`:''}`;
  return html+'</div>';
 }
+function releaseOrder(gc,d){
+ // 実際のリリース順：
+ // ①1回目散開＋加速度 → ②1回目視線 → ③2回目散開＋加速度 → ④2回目視線 → ⑤水処理
+ if(d.kind==='vision') return gc==='gc1'?2:4;
+ if(d.kind==='none') return gc==='gc1'?3:1;
+ if(d.time==='early') return 1;
+ return 3;
+}
+function releaseLabel(order){
+ return ['','1回目 散開・加速度','1回目 視線','2回目 散開・加速度','2回目 視線','水処理'][order] || '';
+}
 function finalUI(){
  const items=[];
  for(const gc of ['gc1','gc2']){
    const d=selectedInfo(gc); if(!d)continue;
-   const g=S[gc];
+   const order=releaseOrder(gc,d);
+   const base={releaseOrder:order,gcOrder:gc==='gc1'?0:1,timing:timeText(S[gc].debuff,gc),release:releaseLabel(order)};
    if(d.kind==='vision'){
-     items.push({timing:d.timeText,name:`${iconImg('curse','finalIcon')}視線`,act:action('curse',gc),extra:`${iconImg('accel','finalIcon')}加速弾：${action('acc',gc)}`});
+     items.push({...base,name:`${iconImg('curse','finalIcon')}視線`,act:action('curse',gc),extra:`${iconImg('accel','finalIcon')}加速弾：${action('acc',gc)}`});
    }else if(d.kind==='none'){
-     items.push({timing:d.timeText,name:`${iconImg('accel','finalIcon')}無職（加速弾のみ）`,act:action('acc',gc)});
+     items.push({...base,name:`${iconImg('accel','finalIcon')}無職（加速弾のみ）`,act:action('acc',gc)});
    }else{
-     items.push({timing:d.timeText,name:`${iconImg(d.icon,'finalIcon')}${d.label.replace(/^早|^遅/,'')}`,act:action(d.kind,gc),marker:marker(gc)});
+     items.push({...base,name:`${iconImg(d.icon,'finalIcon')}${d.label.replace(/^早|^遅/,'')}`,act:action(d.kind,gc),marker:marker(gc)});
    }
  }
- const renderItem=x=>`<div class="item">${x.timing?`<div class="timingBadge">${x.timing}</div>`:''}<div class="name">${x.name}</div>${x.extra?`<div class="subAction">${x.extra}</div>`:''}<div class="action">${x.act}</div>${x.marker?`<div class="marker">🎯 ${x.marker}</div>`:''}</div>`;
+ // 秒数ではなく、実際のリリース順で表示。
+ items.sort((a,b)=>a.releaseOrder-b.releaseOrder || a.gcOrder-b.gcOrder);
+ const renderItem=x=>`<div class="item"><div class="tag">${x.release}</div>${x.timing?`<div class="timingBadge">${x.timing}</div>`:''}<div class="name">${x.name}</div>${x.extra?`<div class="subAction">${x.extra}</div>`:''}<div class="action">${x.act}</div>${x.marker?`<div class="marker">🎯 ${x.marker}</div>`:''}</div>`;
  $('step').innerHTML=`<div class="card"><div class="top"><h2>あなたの処理</h2><button class="smallbtn" onclick="reset()">リセット</button></div><div class="muted">ロール：${S.role==='dps'?'DPS':'タンヒラ'}</div></div><div class="sectionTitle">⚡ エクスデス</div><div class="timeline">${items.map(renderItem).join('')}</div><button class="smallbtn" style="width:100%;margin-top:10px" onclick="S.step=2;render()">← GC2を修正</button>`;
 }
 </script>
