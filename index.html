@@ -18,7 +18,7 @@ h2{font-size:16px;margin:0 0 12px}.muted{color:#9da6bc;font-size:12px}
 button{font:inherit}.smallbtn{padding:9px 11px;border-radius:10px;background:#151a27;color:#cbd4e8;border:1px solid #303a52;font-size:12px}
 .hidden{display:none}.top{display:flex;justify-content:space-between;align-items:center;gap:8px}
 
-.miniIcon{width:26px;height:26px;object-fit:contain;vertical-align:middle}.finalIcon{width:28px;height:28px;object-fit:contain;vertical-align:middle;margin-right:6px}.truthIcon{width:48px;height:48px;object-fit:contain;display:block}.truthRow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}.truthBtn{border:1px solid #35405c;background:#1b2232;color:#fff;border-radius:15px;padding:10px;min-height:82px;display:flex;align-items:center;justify-content:center;gap:9px;font-weight:900;font-size:17px}.truthBtn.on{background:#314c7c;border-color:#72a6ff;box-shadow:0 0 0 2px #72a6ff33 inset}debuffGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:8px}.debuff{padding:10px 7px;min-height:82px}.debuff .muted{display:block;font-size:10px;margin-top:4px}.disabled{opacity:.38;cursor:not-allowed}.hint{font-size:11px;color:#9da6bc;margin-top:10px;line-height:1.45}.selectedDebuff{display:flex;align-items:center;gap:10px;margin-top:9px}.resultIcon{width:36px;height:36px;object-fit:contain}.actionPair{display:grid;gap:5px;margin-top:8px;text-align:center;font-size:16px;font-weight:800}.subAction{text-align:center;font-size:16px;font-weight:800;margin-top:6px;color:#d9e3f7}.primary{background:#314c7c;border-color:#72a6ff}
+.miniIcon{width:26px;height:26px;object-fit:contain;vertical-align:middle}.finalIcon{width:28px;height:28px;object-fit:contain;vertical-align:middle;margin-right:6px}.truthIcon{width:48px;height:48px;object-fit:contain;display:block}.truthRow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:8px}.truthBtn{border:1px solid #35405c;background:#1b2232;color:#fff;border-radius:15px;padding:10px;min-height:82px;display:flex;align-items:center;justify-content:center;gap:9px;font-weight:900;font-size:17px}.truthBtn.on{background:#314c7c;border-color:#72a6ff;box-shadow:0 0 0 2px #72a6ff33 inset} .debuffGrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:8px}.debuff{padding:10px 7px;min-height:94px;height:94px;display:flex;flex-direction:column;align-items:center;justify-content:center}.debuff .muted{display:block;font-size:10px;margin-top:4px}.disabled{opacity:.38;cursor:not-allowed}.hint{font-size:11px;color:#9da6bc;margin-top:10px;line-height:1.45}.selectedDebuff{display:flex;align-items:center;gap:10px;margin-top:9px}.resultIcon{width:36px;height:36px;object-fit:contain}.actionPair{display:grid;gap:5px;margin-top:8px;text-align:center;font-size:16px;font-weight:800}.subAction{text-align:center;font-size:16px;font-weight:800;margin-top:6px;color:#d9e3f7}.primary{background:#314c7c;border-color:#72a6ff}
 </style>
 
 <link rel="manifest" href="manifest.webmanifest">
@@ -159,7 +159,7 @@ function gcUI(n){
  const g=S['gc'+n];
  const complete=!!(g.ex&&g.debuff&&((n===1&&(g.debuff==='vision'||g.debuff==='none'))?g.partnerTiming:true));
  const title=n===1?'GC1':'GC2';
- const choices=n===1?['vision','none','waterE','thunderE','waterL','thunderL']:allowedGC2();
+ const choices=n===1?['waterE','waterL','thunderE','thunderL','vision','none']:allowedGC2();
  $('step').innerHTML=`
  <div class="card"><div class="top"><h2>${title}</h2><span class="muted">STEP ${n}/2</span></div>
  <div class="muted" style="margin-bottom:10px">① グランドクロスの玉</div>
