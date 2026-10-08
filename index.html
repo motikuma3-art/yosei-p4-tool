@@ -14,7 +14,7 @@ h2{font-size:16px;margin:0 0 12px}.muted{color:#9da6bc;font-size:12px}
 .debuff{font-size:14px;line-height:1.35}.ico{font-size:24px;display:block;margin-bottom:4px}
 .action{font-size:31px;font-weight:900;text-align:center;letter-spacing:.03em;margin:7px 0}
 .timeline{display:grid;gap:9px}.beam{border-color:#53698f}.chaos{border-color:#6a4d70}.spread{border-color:#4e7258}.item{background:#101521;border:1px solid #2a3348;border-radius:15px;padding:12px}.tag{font-size:11px;color:#91a0bd;font-weight:800}.name{font-size:15px;font-weight:800;margin-top:3px}
-.sectionTitle{font-size:15px;font-weight:900;margin:14px 2px 7px}.chaosTitle{margin-top:18px}.timingBadge{display:inline-block;font-size:15px;font-weight:900;padding:5px 10px;border-radius:999px;background:#273b61;border:1px solid #6b94d7;margin-bottom:7px}.markerIcon{width:32px;height:32px;object-fit:contain;vertical-align:middle;margin-right:7px}.marker{font-size:25px;font-weight:900;text-align:center;padding:8px}.ok{border-color:#426a4d;background:#102016}.warn{border-color:#654c2b;background:#211a10}
+.sectionTitle{font-size:15px;font-weight:900;margin:14px 2px 7px}.chaosTitle{margin-top:18px}.timingBadge{display:inline-block;font-size:15px;font-weight:900;padding:5px 10px;border-radius:999px;background:#273b61;border:1px solid #6b94d7;margin-bottom:7px}.markerIcon{width:38px;height:38px;object-fit:contain;vertical-align:middle;flex:0 0 38px}.actionRow{display:flex;align-items:center;justify-content:center;gap:10px;margin:7px 0}.actionRow .action{margin:0}.ok{border-color:#426a4d;background:#102016}.warn{border-color:#654c2b;background:#211a10}
 button{font:inherit}.smallbtn{padding:7px 9px;border-radius:10px;background:#151a27;color:#cbd4e8;border:1px solid #303a52;font-size:11px}
 .hidden{display:none}.top{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:2px}
 
@@ -225,7 +225,7 @@ function finalUI(){
    if(visionItem) items.push({...visionItem,kind:'vision'});
  }
  items.sort((a,b)=>a.releaseOrder-b.releaseOrder || a.gcOrder-b.gcOrder);
- const renderItem=x=>`<div class="item"><div class="tag">${x.release}</div>${x.timing?`<div class="timingBadge">${x.timing}</div>`:''}<div class="name">${x.name}</div><div class="action">${x.act}</div>${x.marker?`<div class="marker">${x.marker}</div>`:''}</div>`;
+ const renderItem=x=>`<div class="item"><div class="tag">${x.release}</div>${x.timing?`<div class="timingBadge">${x.timing}</div>`:''}<div class="name">${x.name}</div><div class="action">${x.act}</div>${x.marker?`<div class="actionRow">${x.marker}<div class="action">${x.act}</div></div>`:`<div class="action">${x.act}</div>`}</div>`;
  $('step').innerHTML=`<div class="card"><div class="top"><h2>あなたの処理</h2><button class="smallbtn" onclick="reset()">リセット</button></div><div class="muted">ロール：${S.role==='dps'?'DPS':'タンヒラ'}</div></div><div class="sectionTitle">⚡ エクスデス</div><div class="timeline">${items.map(renderItem).join('')}</div><button class="smallbtn" style="width:100%;margin-top:10px" onclick="S.step=2;render()">← GC2を修正</button>`;
 }
 </script>
