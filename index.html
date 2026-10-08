@@ -117,9 +117,11 @@ function allowedGC2(){
    if(!S.gc1.partnerTiming)return [];
    return S.gc1.partnerTiming==='early'?['waterL','thunderL']:['waterE','thunderE'];
  }
- // 水/雷はGC1自身の早遅からGC2が一意に決まる。
- if(d.kind==='water')return d.time==='early'?['vision']:['none'];
- if(d.kind==='thunder')return d.time==='early'?['none']:['vision'];
+ // 水/雷はGC1の早遅に関係なく、GC2は「視線（遅）」か「無職（早）」の2択。
+ // 例：GC1 早ライトニング → GC2 遅視線 / 早無職
+ //      GC1 遅ライトニング → GC2 遅視線 / 早無職
+ //      水も同様。
+ if(d.kind==='water'||d.kind==='thunder')return ['vision','none'];
  return [];
 }
 function handlingText(key,gc){
